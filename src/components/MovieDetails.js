@@ -1,13 +1,15 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { KEY } from "./Constants";
 import StarRating from "./StarRating";
 import ErrorMessage from "./ErrorMessage";
 import Loader from "./Loader";
+import useKeyPress from "./useKeyPress";
 function MovieDetails({ selectedId, onCloseMovie, onAddWatched, watched }) {
   const [movie, setMovie] = useState({});
   const [userRating, setUserRating] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const countRef = useRef(0);
   const isWatched = watched.map((movie) => movie.imdbId).includes(selectedId);
   const watchedUserRating = watched.find(
     (movie) => movie.imdbId === selectedId
@@ -33,22 +35,12 @@ function MovieDetails({ selectedId, onCloseMovie, onAddWatched, watched }) {
       runtime: runtime !== "N/A" ? Number(runtime.split(" ").at(0)) : 0,
       imdbRating: imdbRating !== "N/A" ? Number(imdbRating) : 0,
       userRating: Number(userRating),
+      countRatingDecisions: countRef.current,
     };
     onAddWatched(newWatchedMovie);
     onCloseMovie();
   }
-  useEffect(
-    function () {
-      function keyDownCallback(e) {
-        if (e.code === "Escape") onCloseMovie();
-      }
-      document.addEventListener("keydown", keyDownCallback);
-      return function () {
-        document.removeEventListener("keydown", keyDownCallback);
-      };
-    },
-    [onCloseMovie]
-  );
+  useKeyPress("escape", onCloseMovie);
   useEffect(
     function () {
       const controller = new AbortController();
@@ -89,6 +81,12 @@ function MovieDetails({ selectedId, onCloseMovie, onAddWatched, watched }) {
       };
     },
     [title]
+  );
+  useEffect(
+    function () {
+      if (userRating) countRef.current++;
+    },
+    [userRating]
   );
   return (
     <>

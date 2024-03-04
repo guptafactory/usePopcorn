@@ -8,16 +8,15 @@ import MoviesList from "./MoviesList";
 import MovieDetails from "./MovieDetails";
 import WatchedSummary from "./WatchedSummary";
 import WatchedMoviesList from "./WatchedMoviesList";
-import { KEY } from "./Constants";
 import ErrorMessage from "./ErrorMessage";
 import Loader from "./Loader";
+import useMovies from "./useMovies";
+import useLocalStorageState from "./useLocalStorageState";
 function App() {
-  const [movies, setMovies] = useState([]);
-  const [watched, setWatched] = useState([]);
   const [query, setQuery] = useState("");
   const [selectedId, setSelectedId] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [movies, error, isLoading] = useMovies(query, handleCloseMovie);
+  const [watched, setWatched] = useLocalStorageState([], "watched");
   function handleSelectMovie(id) {
     setSelectedId((selectedId) => (id !== selectedId ? id : null));
   }
@@ -30,44 +29,6 @@ function App() {
   function handleDeleteWatched(id) {
     setWatched((watched) => watched.filter((movie) => movie.imdbId !== id));
   }
-
-  useEffect(
-    function () {
-      const controller = new AbortController();
-      async function fetchMovies() {
-        try {
-          setError("");
-          setIsLoading(true);
-          const res = await fetch(
-            `http://www.omdbapi.com/?apikey=${KEY}&s=${query}`,
-            { signal: controller.signal }
-          );
-          if (!res.ok) throw new Error("Error! Try after some time");
-          const data = await res.json();
-          if (data.Response === "False") throw new Error(data.Error);
-          setMovies(data.Search);
-          setError("");
-        } catch (err) {
-          if (err.name !== "AbortError") {
-            setError(err.message);
-          }
-        } finally {
-          setIsLoading(false);
-        }
-      }
-      if (query.length < 3) {
-        setMovies([]);
-        setError("");
-        handleCloseMovie();
-        return;
-      }
-      fetchMovies();
-      return function () {
-        controller.abort();
-      };
-    },
-    [query]
-  );
   return (
     <>
       <Navbar>
