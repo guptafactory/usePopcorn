@@ -49,7 +49,7 @@ function MovieDetails({ selectedId, onCloseMovie, onAddWatched, watched }) {
           setError("");
           setIsLoading(true);
           const res = await fetch(
-            `http://www.omdbapi.com/?apikey=${KEY}&i=${selectedId}`,
+            `https://www.omdbapi.com/?apikey=${KEY}&i=${selectedId}`,
             { signal: controller.signal }
           );
           if (!res.ok) throw new Error("Error! Try after some time");
